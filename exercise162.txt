@@ -1,6 +1,0 @@
-y h n
-The string is empty
-o a k t
-a l m   s m e
-L v C B
-{'Gojackets': None, 'Call me Ishmael': None, 'ILoveChBE': None}
