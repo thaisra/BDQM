@@ -1,0 +1,33 @@
+# log onto PACE ICE cluster
+ssh tarslanbekov3@login-ice.pace.gatech.edu
+# create training in scratch
+cd scratch
+mkdir Training
+emacs test.py
+python3 test.py
+
+# bash script to scheduler
+#!/bin/bash
+#SBATCH -N 1 --ntasks-per-node=8
+#SBATCH --mem-per-cpu=3G
+#SBATCH -t12:00:00
+#SBATCH -A gts-amedford6-joe
+#SBATCH -J optimizer
+#SBATCH -o Report-%j.out -e Report_err-%j.err
+[tarslanbekov3@login-ice-3 Training]$ nano submit_job.sh
+[tarslanbekov3@login-ice-3 Training]$ sbatch submit_job.sh
+Submitted batch job 692805
+python3 test.py
+
+
+#move script into new storage folder
+mkdir Storage
+mv test.py Storage/
+cd Storage
+touch Example.py
+pwd
+
+# bash loop to delete all python scripts
+ls
+for file in *.py; do rm "$file"; done
+ls
