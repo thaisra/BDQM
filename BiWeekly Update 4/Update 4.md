@@ -20,7 +20,7 @@
 This week, I watched the electronic structure lectures to gain a better understanding of DFT as a whole. The papers that I read
 for this update reinforced my understanding, and also exposed me to novel approaches in the realm of DFT. 
 
-# Literature Review
+# Literature Review 1
 Paper: Bowler, D. R. (2018). Building bridges: matching density functional theory with experiment. Contemporary Physics, 59(4), 377–390. https://doi.org/10.1080/00107514.2019.1578079
 
 1). Summary: This paper discusses, in a very general and superficial manner, the concepts and theories that are integral to DFT, in order to provide a working background.
@@ -46,3 +46,31 @@ since it mentions the dangers of using it as a "black box," but it never expands
 5). Relation: This paper relates to our research project because it employs the same theory that our group does, but for a different applications; this could be useful in promoting inter-disciplinary
 collaboration in order to discover new useful applications for DFT. People from different fields could utilize the research from our group and apply it to theirs to gain a better understanding of the 
 experimental data that they get, and possibly change their methods to account for DFT data. 
+
+
+# Literature Review 2
+Paper: Fabian MD, Shpiro B, Rabani E, Neuhauser D, Baer R. Stochastic density functional theory. WIREs Comput Mol Sci. 2019; 9:e1412. https://doi.org/10.1002/wcms.1412
+
+1). Summary: This paper introduces an alternative approach to DFT calculation for large-atom systems (many electron), namely stochastic DFT, which randomly samples electron densities to derive the representational
+electronic properties applicable to the entire system, substantially decreasing the computational burden by simplifying calculations. The paper then explores the applications of sDFT to study protein-ligand interactions, localized catalytic events, and the effects of impurities on crystals, as well as other applications in material systems. 
+
+2). Figure: I found figure 1 most interesting since it highlights the increasing accuracy of sDFT as the number of random vectors (I) increases. This means that there exists a convergence to deterministic results
+with sDFT, which entails that is a very viable method for approximation in many-electron systems. Also, the decreasing error bars show that the standard deviation for this method across expected and measured
+results decreases, so it is a reliable method. All of this entails that this is a very computationally efficient method!
+
+![image](https://github.com/user-attachments/assets/d9a767b1-7983-4136-a4db-de6a84e303bd)
+
+
+
+
+
+3). Strongest Point: One of the strongest points of this paper is its demonstration of sDFTs ability to achieve linear scaling in computational complexity while maintaining accuracy with its calculations. The
+entire paper highlights the efficiency for large systems, sDFTs robustness against system size, a comparison of results with those of deterministic DFT, and analytical insights into this method. 
+
+4). Weakest Point: One of the weakest points of this paper is its over-reliance of the stochastic nature of this method, which introduces inherent statistical fluctuations, especially in systems where small 
+energy differences are critical. Also, the results of sDFT are consistently higher than exact, known, values. Also, sDFT is not very applicable in systems with strong correlation coefficients. Although
+it is expected that such methods are not perfect, the paper does very little to actually address these concerns, nor does it offer viable solutions. 
+
+5). Relation: This paper relates to our research project because it employs the same theory that our group does, but with a different method for approximations used in calculations. Our group could utilize sDFT
+if we were to work with many-electron system or more complex/larger material systems, and we could also work on improving its accuracy by decreasing the stochastic fluctuations. This paper also discusses DFT
+fragmentation methods, which is something our group could also implement in our own research. 
