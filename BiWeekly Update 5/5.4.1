@@ -1,0 +1,69 @@
+import os
+from ase import Atoms, io
+from ase.io import read, write
+from ase.build import molecule
+from ase.units import Hartree, mol, kJ
+from sparc import SPARC
+
+import re, json
+# Function to read energy from SPARC output files
+def read_energy(path):
+    """Read the total energy from a SPARC output file."""
+    energy = None
+    with open(path, 'r') as f:
+        for line in f:
+            if "Total energy" in line:  # Assuming SPARC output specifies total energy this way
+                energy = float(re.search(r"[-+]?\d*\.\d+|\d+", line).group()) * Hartree
+                break
+    return energy
+
+# Compute gas-phase formation energies
+def get_E_form(molecule_name, reference_energies):
+    """
+    Calculate formation energy of molecule using reference energies.
+    `molecule_name`: str, name of molecule (e.g., 'H2O', 'CO2', 'NH3')
+    `reference_energies`: dict, contains elemental reference energies
+    """
+    mol = molecule(molecule_name)
+    mol.calc = SPARC(xc='PBE', charge=0)  # GGA functional; adjust as necessary
+    
+    # Perform calculation
+    mol.get_potential_energy()
+    
+    # Get the computed energy from the SPARC output
+    output_path = os.path.join("output", f"{molecule_name}.out")
+    E_molecule = read_energy(output_path)
+
+    # Calculate formation energy
+    E_form = E_molecule
+    for symbol in mol.get_chemical_symbols():
+        E_form -= reference_energies[symbol]
+    return E_form * mol / kJ  # Convert to kJ/mol
+
+# Define reference energies (make sure to replace with computed or correct values for the GGA level of theory)
+reference_energies = {
+    'H': -13.6 * Hartree,
+    'C': -170.0 * Hartree,  # Example for graphite reference energy
+    'O': -75.0 * Hartree,
+    'N': -54.5 * Hartree
+}
+
+# Run calculations for each molecule
+molecules = ['H2O', 'CO2', 'NH3']
+formation_energies = {}
+for mol in molecules:
+    formation_energies[mol] = get_E_form(mol, reference_energies)
+
+# Display results
+for mol, energy in formation_energies.items():
+    print(f"Formation energy of {mol}: {energy:.2f} kJ/mol")
+
+# Compare with experimental values (kJ/mol)
+experimental_energies = {
+    'H2O': -241.8,
+    'CO2': -393.5,
+    'NH3': -45.9
+}
+for mol in molecules:
+    diff = formation_energies[mol] - experimental_energies[mol]
+    print(f"Difference for {mol}: {diff:.2f} kJ/mol")
