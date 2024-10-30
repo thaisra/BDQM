@@ -1,0 +1,82 @@
+import os
+from ase import Atoms
+from ase.io import read
+from ase.units import eV
+from sparc import SPARC
+
+# Load the Ca-LTA structure (replace 'ca_lta.cif' with the correct file if different)
+ca_lta = read('ca_lta.cif')  # Ensure you have the Ca-LTA structure file in the correct format and path
+
+# Set up SPARC calculator with PBE functional
+sparc_calc = SPARC(
+    atoms=ca_lta,
+    xc='PBE',               # Use PBE functional
+    kpoints=[1, 1, 1],      # Typically for zeolites, a Gamma-point calculation may suffice
+    spin_polarized=False,    # Ca-LTA is usually non-spin-polarized
+    vac=10.0                 # Adjust vacuum if necessary for your system
+)
+
+# Attach the calculator to the Ca-LTA structure
+ca_lta.set_calculator(sparc_calc)
+
+# Run single-point energy calculation
+total_energy = ca_lta.get_potential_energy()  # Energy in eV
+
+# Calculate energy per atom
+num_atoms = len(ca_lta)
+energy_per_atom = total_energy / num_atoms
+
+print(f"Total energy of Ca-LTA framework: {total_energy:.2f} eV")
+print(f"Energy per atom: {energy_per_atom:.2f} eV/atom")
+
+
+
+
+
+ import os
+from ase import Atoms
+from ase.io import read
+from ase.units import eV
+from sparc import SPARC
+
+# Load the Ca-LTA structure (replace 'ca_lta.cif' with the correct file if different)
+ca_lta = read('ca_lta.cif')  # Ensure you have the Ca-LTA structure file in the correct format and path
+
+# Set up SPARC calculator with PBE functional, spin polarization, and D3 dispersion
+sparc_calc = SPARC(
+    atoms=ca_lta,
+    xc='PBE',                  # Use PBE functional
+    kpoints=[1, 1, 1],         # Gamma-point only calculation for zeolites
+    spin_polarized=True,       # Enable spin polarization
+    dispersion='D3',           # Enable D3 dispersion correction
+    vac=10.0                   # Vacuum padding around the structure
+)
+
+# Attach the calculator to the Ca-LTA structure
+ca_lta.set_calculator(sparc_calc)
+
+# Run single-point energy calculation with spin and dispersion
+total_energy = ca_lta.get_potential_energy()  # Energy in eV
+
+# Calculate energy per atom
+num_atoms = len(ca_lta)
+energy_per_atom = total_energy / num_atoms
+
+print(f"Total energy of Ca-LTA framework with spin and D3: {total_energy:.2f} eV")
+print(f"Energy per atom: {energy_per_atom:.2f} eV/atom")
+
+
+
+
+#Explanation of Changes
+#Making spin_polarized=True allows atoms in the structure to relax their spins, which can lead to slight 
+#changes in calculations if there are any unpaired electrons. 
+#Adding dispersion=D3 introduces dispersion corrections, which account for van der Waals forces, especially
+#relevant for large unit cells and materials with voids. 
+#The total energy is expected to decrease with the D3 corrections, and the energy per atom should also
+#be lower due to increased stabilization. 
+#
+#
+#
+#
+#
