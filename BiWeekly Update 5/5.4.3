@@ -1,0 +1,138 @@
+from ase import Atoms, io
+from ase.io import read
+from ase.units import eV
+from sparc import SPARC
+from numpy.polynomial import Polynomial
+
+# Load the LiH5C5N2O5 structure with periodic boundary conditions
+atoms = read('LiH5C5N2O5.cif')
+atoms.pbc = True  # Set periodic boundary conditions
+
+# Print the number of atoms in the structure
+print(f'Number of atoms in the structure: {len(atoms)}')
+
+# Set up SPARC calculator with desired functional (using PBE as an example)
+sparc_calc = SPARC(
+    atoms=atoms,
+    xc='PBE',               # Use PBE functional
+    kpoints=[1, 1, 1],      # Gamma-point calculation for periodic systems
+    spin_polarized=False,    # Non-spin-polarized
+    vac=10.0                 # Vacuum padding, if needed
+)
+
+# Attach the calculator to the Atoms object
+atoms.set_calculator(sparc_calc)
+
+# Run single-point energy calculation
+total_energy = atoms.get_potential_energy()  # Energy in eV
+
+# Calculate energy per atom
+num_atoms = len(atoms)
+energy_per_atom = total_energy / num_atoms
+
+# Output the results
+print(f"Total energy of LiH5C5N2O5 framework: {total_energy:.2f} eV")
+print(f"Energy per atom: {energy_per_atom:.2f} eV/atom")
+
+
+
+
+
+
+
+
+# Initial lattice parameters
+original_cell = atoms.get_cell()
+initial_volume = np.linalg.det(original_cell)
+
+# Create a list to store the energies and corresponding volumes
+energies = []
+volumes = []
+
+# Define fluctuation parameters
+fluctuation_percentages = np.linspace(-0.2, 0.2, 5)  # Four equidistant images
+
+# Iterate over fluctuation percentages
+for fluctuation in fluctuation_percentages:
+    # Adjust the cell parameters
+    scale_factor = 1 + fluctuation
+    new_cell = original_cell * scale_factor
+    
+    # Set the new cell and scale atomic positions
+    atoms.set_cell(new_cell, scale_atoms=True)
+    
+    # Set up SPARC calculator with desired functional (using PBE as an example)
+    sparc_calc = SPARC(
+        atoms=atoms,
+        xc='PBE',               # Use PBE functional
+        kpoints=[1, 1, 1],      # Gamma-point calculation for periodic systems
+        spin_polarized=False,    # Non-spin-polarized
+        vac=10.0                 # Vacuum padding, if needed
+    )
+
+    # Attach the calculator to the Atoms object
+    atoms.set_calculator(sparc_calc)
+
+    # Run single-point energy calculation
+    total_energy = atoms.get_potential_energy()  # Energy in eV
+    
+    # Calculate the volume
+    volume = np.linalg.det(atoms.get_cell())
+    
+    # Store energy and volume
+    energies.append(total_energy)
+    volumes.append(volume)
+
+# Plot energy as a function of cell volume
+plt.figure(figsize=(8, 6))
+plt.plot(volumes, energies, marker='o')
+plt.xlabel('Cell Volume (Å³)')
+plt.ylabel('Energy (eV)')
+plt.title('Energy vs. Cell Volume for LiH5C5N2O5')
+plt.grid(True)
+plt.axhline(y=min(energies), color='r', linestyle='--', label='Minimum Energy')
+plt.legend()
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+# Fit a cubic polynomial to the energy vs. volume data
+coefficients = Polynomial.fit(volumes, energies, 3).convert().coef
+
+# Create a polynomial function from the coefficients
+polynomial_function = np.poly1d(coefficients[::-1])  # np.poly1d expects coefficients in descending order
+
+# Find the volume that minimizes the energy
+v_min = -coefficients[1] / (3 * coefficients[0])  # Minimum volume from derivative
+min_energy = polynomial_function(v_min)
+
+# Output the results
+print(f"Minimum Energy: {min_energy:.4f} eV at Volume: {v_min:.4f} Å³")
+
+# Verify how close the minimum volume is to the original volume
+print(f"Original Volume: {initial_volume:.4f} Å³")
+print(f"Volume Deviation: {v_min - initial_volume:.4f} Å³")
+
+# Plot energy as a function of cell volume with fitted polynomial
+x_fit = np.linspace(min(volumes), max(volumes), 100)
+y_fit = polynomial_function(x_fit)
+
+plt.figure(figsize=(8, 6))
+plt.plot(volumes, energies, marker='o', label='Computed Energies')
+plt.plot(x_fit, y_fit, label='Fitted Cubic Polynomial', color='orange')
+plt.axvline(x=v_min, color='red', linestyle='--', label='Min Energy Volume')
+plt.xlabel('Cell Volume (Å³)')
+plt.ylabel('Energy (eV)')
+plt.title('Energy vs. Cell Volume for LiH5C5N2O5')
+plt.legend()
+plt.grid(True)
+plt.show()
