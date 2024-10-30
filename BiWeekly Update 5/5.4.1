@@ -67,3 +67,89 @@ experimental_energies = {
 for mol in molecules:
     diff = formation_energies[mol] - experimental_energies[mol]
     print(f"Difference for {mol}: {diff:.2f} kJ/mol")
+
+
+#Experimental formation energies
+#For H2O: -2418 kJ/mol
+#For CO2: -393.5 kJ/mol
+#For NH3: -45.9 kJ/mol
+#The PBA functional, because it is a GGA, underestimates binding energies in systems with hydrogen bonding and may miss some electron correlation effects,
+#leading to an overestimation of energies.
+
+
+
+
+import os
+from ase import Atoms
+from ase.io import read, write
+from ase.build import molecule
+from ase.units import Hartree, mol, kJ
+from sparc import SPARC
+
+# Function to set up SPARC calculation with B3LYP
+def calculate_energy_b3lyp(molecule_name):
+    # Create molecule structure using ASE
+    mol = molecule(molecule_name)
+    
+    # Set up SPARC calculation
+    sparc_calc = SPARC(
+        atoms=mol,
+        xc='B3LYP',             # Use B3LYP hybrid functional
+        kpoints=[1, 1, 1],      # Gamma-point only calculation for molecules
+        spin_polarized=False,    # Non-spin-polarized for H2O, CO2, NH3
+        vac=10.0,                # Vacuum padding around the molecule (in Å)
+    )
+    mol.set_calculator(sparc_calc)
+    
+    # Run the calculation
+    energy = mol.get_potential_energy()
+    
+    # Convert energy to kJ/mol for easier comparison with experimental data
+    energy_kjmol = energy * Hartree * mol / kJ
+    print(f"The calculated energy for {molecule_name} is {energy_kjmol:.2f} kJ/mol")
+    return energy_kjmol
+
+# Define molecule names
+molecule_names = ["H2O", "CO2", "NH3"]
+energies = {}
+
+# Calculate energies for each molecule
+for name in molecule_names:
+    energies[name] = calculate_energy_b3lyp(name)
+
+# Reference energies for atomic states in kJ/mol
+# (Set these experimentally based on graphite and diatomic gases)
+reference_energies = {
+    "H2": -436.0,  # Experimental dissociation energy of H2
+    "O2": -498.4,  # Experimental dissociation energy of O2
+    "N2": -944.1,  # Experimental dissociation energy of N2
+    "C_graphite": 0.0  # Reference energy of C from graphite
+}
+
+# Formation energies calculation
+def formation_energy(molecule_energy, formula, reference_energies):
+    # Elements and their counts in each molecule (H2O, CO2, NH3)
+    element_counts = {
+        "H2O": {"H": 2, "O": 1},
+        "CO2": {"C": 1, "O": 2},
+        "NH3": {"N": 1, "H": 3}
+    }
+    elements = element_counts[formula]
+    ref_energy = sum(elements[el] * reference_energies[el + ("_graphite" if el == "C" else "2")]
+                     for el in elements)
+    formation_energy = molecule_energy - ref_energy
+    return formation_energy
+
+# Calculate and display formation energies
+for mol_name, mol_energy in energies.items():
+    f_energy = formation_energy(mol_energy, mol_name, reference_energies)
+    print(f"Formation energy for {mol_name}: {f_energy:.2f} kJ/mol")
+
+
+#The B3LYP functional is usually more accurate since it includes a portion of exact exchange, which captures
+#electron correlation effects better. B3LYP predicts formation energies a lot better across all of the molecules. 
+#PBE tends to over- and under-estimate energies of molecules with polar bonds or in bonds where the energy correlation
+#coefficients are non-trivial, so the B3LYP functional provides a lot better approximation. 
+#B3LYP significantly increases computational time since it requires the calculation of two electron integrals, which
+#scales more steeply with each increasing electron in the system. PBE calcs scale to O(N^2) or O(N^3), whereas B3LYP
+#usually scales to O(N^4), especially in larger/bulk systems. 
